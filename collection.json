@@ -1,0 +1,21 @@
+[ {
+  "name" : "1",
+  "id" : 1,
+  "type" : "VIP",
+  "price" : 1,
+  "creationDate" : "2020-03-16T09:37:12.627794",
+  "person" : {
+    "location" : {
+      "name" : "1",
+      "x" : 1,
+      "y" : 1.0,
+      "z" : 1.0
+    },
+    "weight" : 1.0,
+    "height" : 1.0
+  },
+  "coordinates" : {
+    "y" : 1.0,
+    "x" : 1
+  }
+} ]
