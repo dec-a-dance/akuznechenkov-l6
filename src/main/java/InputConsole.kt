@@ -63,12 +63,12 @@ class InputConsole {
                                     }
                                 }
                                 if (key.isWritable()) {
-                                    channel.register(selector, SelectionKey.OP_READ)
                                     print("Введите команду: ")
                                     line = readLine()
                                     var arr = line!!.trim().split("\\s+".toRegex())
                                     commands.forEach() {
                                         if (arr[0] == it.cmd) {
+                                            channel.register(selector, SelectionKey.OP_READ)
                                             println("полученная команда верна")
                                             noCommand = false
                                             val dataStor = DataStor()
