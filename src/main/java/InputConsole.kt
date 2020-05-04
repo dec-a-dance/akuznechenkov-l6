@@ -1,11 +1,15 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 import commands.CommandManager
+import java.io.IOException
 import java.lang.System.`in`
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.net.PortUnreachableException
 import java.net.SocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
+import java.nio.channels.SelectionKey
+import java.nio.channels.Selector
 import java.time.LocalDateTime
 
 /**
@@ -25,9 +29,11 @@ class InputConsole {
      * Метод, реализующий считывание строки и определение, является ли строка командой, а также исполнение этой команды.
      */
     fun read() {
-        var adress: SocketAddress = InetSocketAddress(ADDR, PORT)
+        var adress: SocketAddress? = InetSocketAddress(ADDR, PORT)
         var channel = DatagramChannel.open()
+        var selector = Selector.open()
         channel.connect(adress)
+        channel.configureBlocking(false)
         println("Подключены к $ADDR по порту $PORT")
         while (true) {
             var tick: Ticket
@@ -35,65 +41,79 @@ class InputConsole {
             val mapper = ObjectMapper()
             var noCommand = true
             var noAnswer = true
-            print("Введите команду: ")
-            line = readLine()
-            var arr = line!!.trim().split("\\s+".toRegex())
 
-            commands.forEach() {
-                if (arr[0] == it.cmd) {
-                    println("полученная команда верна")
-                    var dataStor = DataStor()
-                    dataStor.setName(arr[0])
-                    if (it.par) {
-                        dataStor.setPar(arr[1])
-                    }
-                    if (it.ticket) {
-                        tick = readTicket()
-                        dataStor.setTick(tick)
-                    }
-                    dataStor.setAddr(InetAddress.getLocalHost())
-                    var buffer = ByteBuffer.wrap(serializator.serialize(dataStor))
-                    channel.send(buffer, adress)
-                    while(noAnswer) {
-                        inputBuffer.clear()
-                        adress = channel.receive(inputBuffer)
-                        inputBuffer.flip()
-                        var b = inputBuffer.array()
-                        if (String(b).trim().isNotBlank()) {
-                            val message = serializator.deserialize(b)
-                            if (message is ServerMessage) {
-                                println(message.getMsg)
-                                noAnswer = false
+                    try {
+                       channel.register(selector, SelectionKey.OP_WRITE)
+                        while (selector.select() > 0) {
+                            val iterator = selector.selectedKeys().iterator()
+                            while (iterator.hasNext()) {
+                                var key: SelectionKey  = iterator.next()
+                                iterator.remove()
+                                if (key.isReadable()) {
+                                    inputBuffer.clear()
+                                    adress = channel.receive(inputBuffer)
+                                    inputBuffer.flip()
+                                    var b = inputBuffer.array()
+                                    if (String(b).trim().isNotBlank()) {
+                                        val message = serializator.deserialize(b)
+                                        if (message is ServerMessage) {
+                                            println(message.getMsg)
+                                            channel.register(selector, SelectionKey.OP_WRITE)
+                                        }
+                                    }
+                                }
+                                if (key.isWritable()) {
+                                    channel.register(selector, SelectionKey.OP_READ)
+                                    print("Введите команду: ")
+                                    line = readLine()
+                                    var arr = line!!.trim().split("\\s+".toRegex())
+                                    commands.forEach() {
+                                        if (arr[0] == it.cmd) {
+                                            println("полученная команда верна")
+                                            noCommand = false
+                                            val dataStor = DataStor()
+                                            dataStor.setName(arr[0])
+                                            if (it.par) {
+                                                dataStor.setPar(arr[1])
+                                            }
+                                            if (it.ticket) {
+                                                tick = readTicket()
+                                                dataStor.setTick(tick)
+                                            }
+                                            dataStor.setAddr(InetAddress.getLocalHost())
+                                            var buffer = ByteBuffer.wrap(serializator.serialize(dataStor))
+                                            channel.send(buffer, adress)
+                                        }else {
+                                            try {
+                                                if (it == commands.last()) {
+                                                    if (noCommand) {
+                                                        throw e
+                                                    }
+                                                }
+                                            } catch (e: InputException) {
+                                                println(e)
+                                            }
+                                        }
+                                        if (arr[0] == "exit") {
+                                            System.exit(0)
+                                        }}
+                                    }
+                                }
                             }
-                        }
+                    } catch(e: PortUnreachableException) {
+                        System.out.println("Проблемы с портом")
+                }
+                    catch (e: IOException) {
+                        e.printStackTrace();
                     }
                     noAnswer = true
                     noCommand = false
-                } else {
-                    try {
-                        if (it == commands.last()) {
-                            if (noCommand) {
-                                throw e
-                            }
-                        }
-                    } catch (e: InputException) {
-                        println(e)
-                    }
-                }
-            }
-
-
-
-            if (arr[0] == "exit") {
-                break
             }
         }
     }
 
 
-    /**
-     * Метод, осуществлящий работу с входящим файлом
-     */
+
 
     fun readTicket() : Ticket {
         var name: String
@@ -289,4 +309,3 @@ class InputConsole {
             val newTicket: Ticket = Ticket(0, name, coordinates, creationDate, price, type, person)
             return newTicket
         }
-}
