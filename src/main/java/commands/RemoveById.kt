@@ -25,9 +25,15 @@ class RemoveById() : AbstractCommand() {
         var wasFound = false
         try {
             var searchId: Long = arg.toLong()
-            collection.removeIf{it.id == searchId}
-            msg = "Команда выполнена"
-            logger.info("Элемент с id = $searchId удален из коллекции")
+            if(collection.removeIf{it.id == searchId}) {
+                msg = "Элемент был успешно удален"
+                logger.info("Элемент с id = $searchId удален из коллекции")
+            }
+            else{
+                msg = "Элемент с таким id не был найден"
+                logger.info("Элемент с id = $searchId не найден в коллекции")
+            }
+
         }
         catch(e: NumberFormatException){
             msg = "Формат аргумента неверен"

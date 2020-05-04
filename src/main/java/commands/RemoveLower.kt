@@ -14,9 +14,9 @@ class RemoveLower(): AbstractCommand() {
     override val cmd = "remove_lower"
     override val info = "убрать все элементы, значение которых меньше, чем у входящего"
     val logger = Logger.getLogger("log.txt")
-    override val ticket = true
+    override val ticket = false
     private var arg = ""
-    override val par = false
+    override val par = true
     /**
      * Метод, отвечающий за выполнение команды
      */
@@ -25,9 +25,14 @@ class RemoveLower(): AbstractCommand() {
         var msg = ""
         try {
             var searchPrice: Long = arg.toLong()
-            collection.removeIf{it.price < searchPrice}
-            msg = "Команда выполнена"
-            logger.info("Элементы ценой ниже $searchPrice удалены из коллекции")
+            if(collection.removeIf{it.price < searchPrice}) {
+                msg = "Элементы были успешно удалены"
+                logger.info("Элементы с ценой меньше $searchPrice удален из коллекции")
+            }
+            else{
+                msg = "Элемент с такой ценой не был найден"
+                logger.info("Элемент с ценой меньше $searchPrice не найден в коллекции")
+            }
         }
         catch(e: NumberFormatException){
             msg = "Формат аргумента неверен"
