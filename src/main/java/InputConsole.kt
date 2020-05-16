@@ -37,7 +37,7 @@ class InputConsole {
         println("Подключены к $ADDR по порту $PORT")
         while (true) {
             var tick: Ticket
-            var inputBuffer = ByteBuffer.allocate(100000)
+            var inputBuffer = ByteBuffer.allocate(10000)
             val mapper = ObjectMapper()
             var noCommand = true
             var noAnswer = true
@@ -72,15 +72,14 @@ class InputConsole {
                                             println("полученная команда верна")
                                             noCommand = false
                                             val dataStor = DataStor()
-                                            dataStor.setName(arr[0])
+                                            dataStor.name = arr[0]
                                             if (it.par) {
-                                                dataStor.setPar(arr[1])
+                                                dataStor.par = arr[1]
                                             }
                                             if (it.ticket) {
                                                 tick = readTicket()
-                                                dataStor.setTick(tick)
+                                                dataStor.tick = tick
                                             }
-                                            dataStor.setAddr(InetAddress.getLocalHost())
                                             var buffer = ByteBuffer.wrap(serializator.serialize(dataStor))
                                             channel.send(buffer, adress)
                                         }else {

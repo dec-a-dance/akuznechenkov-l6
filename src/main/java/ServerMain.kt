@@ -25,7 +25,7 @@ fun main(args: Array<String>?) {
     channel.configureBlocking(false)
     logger.info("Канал открыт и готов к приему сообщений")
     while(true) {
-            var buffer = ByteBuffer.allocate(100000)
+            var buffer = ByteBuffer.allocate(10000)
             buffer.clear()
             socket = channel.receive(buffer)
         buffer.flip()
@@ -35,7 +35,7 @@ fun main(args: Array<String>?) {
                     if (data is DataStor) {
                         logger.info("Получен объект: ${data.toString()}")
                         var message = data.unpack(collection)
-                        logger.info("Команда ${data.getName} приведена в исполнение")
+                        logger.info("Команда ${data.name} приведена в исполнение")
                         buffer.clear()
                         buffer = ByteBuffer.wrap(serializator.serialize(message))
                         channel.send(buffer, socket)
