@@ -1,8 +1,12 @@
 package commands
 
+import DatabaseManager
 import ServerMessage
 import Storage
 import Ticket
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.ResultSet
 
 
 /**
@@ -16,10 +20,13 @@ class Show(): AbstractCommand() {
     /**
      * Метод, отвечающий за выполнение команды
      */
-    override fun execute(collection: HashSet<Ticket>): ServerMessage {
+    override fun execute(collection: HashSet<Ticket>, databaseManager: DatabaseManager): ServerMessage {
         var msg = ""
-        collection.forEach(){
-            msg = msg + it.toString() + "\n"
+        collection.forEach{
+            msg+= it.toString()
+            if (it!=collection.last()){
+                msg+= "\n"
+            }
         }
         return ServerMessage(msg)
     }

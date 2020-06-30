@@ -1,5 +1,6 @@
 package commands
 
+import DatabaseManager
 import ServerMessage
 import Ticket
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -21,16 +22,8 @@ class Exit: AbstractCommand() {
     /**
      * Метод, отвечающий за выполнение команды
      */
-    override fun execute(collection: HashSet<Ticket>): ServerMessage{
-        var fileout = FileOutputStream("collection.json")
-        var writer = BufferedOutputStream(fileout)
-        var mapper: ObjectMapper = ObjectMapper();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        var json: String = mapper.writeValueAsString(collection);
-        var output = json.toByteArray()
-        writer.write(output)
-        writer.close()
-        logger.info("Работа клиента была завершена")
+    override fun execute(collection: HashSet<Ticket>, databaseManager: DatabaseManager): ServerMessage{
+        logger.info("Работа клиента ${databaseManager.USER} была завершена")
         return ServerMessage("работа клиента завершена")
     }
     override fun setTick(t: Ticket){

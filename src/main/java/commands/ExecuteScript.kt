@@ -2,6 +2,7 @@ package commands
 
 
 import Coordinates
+import DatabaseManager
 import InputException
 import Location
 import Person
@@ -36,7 +37,7 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
     /**
      * Метод, отвечающий за выполнение команды
      */
-    override fun execute(collection: HashSet<Ticket>): ServerMessage{
+    override fun execute(collection: HashSet<Ticket>, databaseManager: DatabaseManager): ServerMessage{
         try {
             val input = FileInputStream(arg)
             val scan = Scanner(input)
@@ -60,7 +61,7 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
                                 }
                             }
                             if (scriptWorks) {
-                                it.execute(collection)
+                                it.execute(collection, databaseManager)
                                 wasFound = true
                             }
                         } else {
@@ -72,6 +73,11 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
                     }
                 }
                 catch(e: EOFException){
+                    scriptWorks = false
+                    msg = "Файл был успешно считан и исполнен"
+                    logger.info("Исполнение скрипта выполнено успешно")
+                }
+                catch(e: NoSuchElementException){
                     scriptWorks = false
                     msg = "Файл был успешно считан и исполнен"
                     logger.info("Исполнение скрипта выполнено успешно")
@@ -114,7 +120,6 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
         var strx: String
         var x: Long = 0L
         while (true) {
-            print("Введите координату по Х: ")
             try {
                 strx = scan.nextLine() ?: throw InputException("Строка не подходит по формату")
                 x = strx.toLong()
@@ -132,7 +137,6 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
         var stry: String
         var y: Double = 0.0
         while(true) {
-            print("Введите координату по Y: ")
             try {
                 stry = scan.nextLine() ?: throw InputException("Число не подходит по формату")
                 y = stry.toDouble()
@@ -153,7 +157,6 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
         coordinates = Coordinates(x, y)
         var strprice: String
         while (true) {
-            print("Введите цену: ")
             try {
                 strprice =
                     scan.nextLine() ?: throw InputException("Введенная строка не подходит по формату, повторите ввод")
@@ -174,7 +177,6 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
         }
         var noType = true
         while (noType) {
-            print("Введите тип билета (VIP, USUAL, BUDGETARY, CHEAP): ")
             var strtype: String? = scan.nextLine()
             var eType = InputException("То, что вы ввели, не является типом билета, повторите ввод")
             when (strtype) {
@@ -213,7 +215,6 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
         var locy: Float = 0.0F
         var locz: Float = 0.0F
         while (true) {
-            print("Введите координату по Х: ")
             try {
                 var strlocx: String = scan.nextLine() ?: throw InputException("Некорректное значение")
                 locx = strlocx.toLong()
@@ -229,7 +230,6 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
             }
         }
         while (true) {
-            print("Введите координату по Y: ")
             try {
                 var strlocy: String = scan.nextLine() ?: throw InputException("Некорректное значение")
                 locy = strlocy.toFloat()
@@ -245,7 +245,6 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
             }
         }
         while (true) {
-            print("Введите координату по Z: ")
             try {
                 var strlocz: String = scan.nextLine() ?: throw InputException("Некорректное значение")
                 locz = strlocz.toFloat()
@@ -262,7 +261,6 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
         }
         var locname: String = ""
         while (true) {
-            print("Введите название локации: ")
             try {
                 locname = scan.nextLine() ?: throw InputException("Введена пустая строка")
                 if (locname.length > 852) {
@@ -278,7 +276,6 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
         val location = Location(locx, locy, locz, locname)
         var height: Float = 0.0F
         while (true) {
-            print("Введите рост человека: ")
             try {
                 var strheight: String = scan.nextLine() ?: throw InputException("Получена пустая строка, повторите ввод")
                 height = strheight.toFloat()
@@ -294,7 +291,6 @@ class ExecuteScript(gmanager: CommandManager): AbstractCommand() {
         }
         var weight: Double? = 0.0
         while (true) {
-            print("Введите вес человека: ")
             try {
                 var strweight: String =
                     scan.nextLine() ?: throw InputException("Введенная вами строка не соотвествует формату")

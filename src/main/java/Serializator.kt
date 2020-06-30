@@ -15,7 +15,7 @@ class Serializator() {
             val objectInput = ObjectInputStream(input)
             o = objectInput.readObject()
           //  println("Получен объект")
-            return if ((o is DataStor) || (o is ServerMessage)) {
+            return if ((o is DataStor) || (o is ServerMessage) || (o is LoginRequest) || (o is LoginAnswer)) {
                 o
             } else {
                 println("Был получен не тот объект")

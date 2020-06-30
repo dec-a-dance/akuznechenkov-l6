@@ -8,7 +8,7 @@ import kotlin.collections.HashSet
 class CommandManager{
     //var stor = Storage("collection.json", 1L, false, Scanner(System.`in`), hashSetOf(), TicketComparator(), hashSetOf(), listOf())
     //var console = InputConsole(stor)
-    val add: Add = Add()
+    val add: Add = Add("", "")
     val clear: Clear = Clear()
     val exit = Exit()
     val filterByPrice = FilterByPrice()

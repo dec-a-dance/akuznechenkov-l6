@@ -1,7 +1,11 @@
 package commands
 
+import DatabaseManager
 import ServerMessage
 import Ticket
+import java.sql.Connection
+import java.sql.DriverManager
+import java.time.LocalDateTime
 
 
 /**
@@ -15,8 +19,14 @@ class Clear(): AbstractCommand() {
     /**
      * Метод, отвечающий за выполнение команды
      */
-    override fun execute(collection: HashSet<Ticket>): ServerMessage {
-        collection.clear()
+    override fun execute(collection: HashSet<Ticket>, databaseManager: DatabaseManager): ServerMessage {
+        val connection: Connection = DriverManager.getConnection("jdbc:postgresql://lab-prog-database-do-user-7323038-0.a.db.ondigitalocean.com:25060/Lab7?sslmode=require", "${databaseManager.USER}", "${databaseManager.PASSWORD}")
+        val stm = connection.createStatement()
+        val sql = "DELETE from tickets where (ticket_id > -1) and (creator = '${databaseManager.USER}') ;"
+        stm.executeUpdate(sql)
+        stm.close()
+        connection.close()
+        databaseManager.updateCollection(collection)
         return ServerMessage("Коллекция очищена")
     }
     override fun setTick(t: Ticket){

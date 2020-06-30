@@ -1,5 +1,6 @@
 package commands
 
+import DatabaseManager
 import ServerMessage
 import Storage
 import Ticket
@@ -16,7 +17,7 @@ class PrintAscending(): AbstractCommand() {
     /**
      * Метод, отвечающий за выполнение команды
      */
-    override fun execute(collection: HashSet<Ticket>): ServerMessage {
+    override fun execute(collection: HashSet<Ticket>, databaseManager: DatabaseManager): ServerMessage {
         var msg = ""
         var sorted = collection.toSortedSet(comp)
         sorted.forEach(){

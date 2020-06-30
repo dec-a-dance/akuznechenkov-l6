@@ -1,8 +1,8 @@
 import commands.CommandManager
 import java.net.InetAddress
 
-data class DataStor(var name: String = "", var par: String = "", var tick: Ticket = Ticket()): java.io.Serializable{
-    fun unpack(collection: HashSet<Ticket>) : ServerMessage {
+data class DataStor(var name: String = "", var par: String = "", var tick: Ticket = Ticket(), var login: String = "", var password: String = ""): java.io.Serializable{
+    fun unpack(collection: HashSet<Ticket>, databaseManager: DatabaseManager) : ServerMessage {
         val manager = CommandManager()
         var message = ServerMessage("")
         manager.commands.forEach() {
@@ -14,7 +14,9 @@ data class DataStor(var name: String = "", var par: String = "", var tick: Ticke
                 if (it.par) {
                     it.setArg(this.par)
                 }
-                message = it.execute(collection)
+                databaseManager.USER = login
+                databaseManager.PASSWORD = password
+                message = it.execute(collection, databaseManager)
             }
 
         }

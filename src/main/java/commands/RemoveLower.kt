@@ -1,10 +1,13 @@
 package commands
 
+import DatabaseManager
 import InputException
 import ServerMessage
 import Storage
 import Ticket
 import java.lang.NumberFormatException
+import java.sql.Connection
+import java.sql.DriverManager
 import java.util.logging.Logger
 
 /**
@@ -20,18 +23,23 @@ class RemoveLower(): AbstractCommand() {
     /**
      * Метод, отвечающий за выполнение команды
      */
-    override fun execute(collection: HashSet<Ticket>): ServerMessage{
+    override fun execute(collection: HashSet<Ticket>, databaseManager: DatabaseManager): ServerMessage{
         var wasFound: Boolean = false
         var msg = ""
         try {
             var searchPrice: Long = arg.toLong()
-            if(collection.removeIf{it.price < searchPrice}) {
-                msg = "Элементы были успешно удалены"
-                logger.info("Элементы с ценой меньше $searchPrice удален из коллекции")
-            }
-            else{
-                msg = "Элемент с такой ценой не был найден"
-                logger.info("Элемент с ценой меньше $searchPrice не найден в коллекции")
+            if(collection.removeIf{it.price<searchPrice}){
+                val connection: Connection = DriverManager.getConnection("jdbc:postgresql://lab-prog-database-do-user-7323038-0.a.db.ondigitalocean.com:25060/Lab7?sslmode=require", "doadmin", "qn2ja517e2cyc53y")
+                val stm = connection.createStatement()
+                val sql = "DELETE from tickets where (ticket_price < $searchPrice) and (creator = '${databaseManager.USER}')"
+                stm.executeUpdate(sql)
+                var before = collection.size
+                databaseManager.updateCollection(collection)
+                if (collection.size!=before) {
+                    msg = "Элементы с ценой нижу $searchPrice был удален из базы данных"
+                }
+                else{   msg = "Элементы с ценой ниже $searchPrice не были найдены или не принадлежат вам" }
+
             }
         }
         catch(e: NumberFormatException){

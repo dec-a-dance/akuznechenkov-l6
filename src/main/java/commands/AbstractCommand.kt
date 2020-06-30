@@ -1,5 +1,6 @@
 package commands
 
+import DatabaseManager
 import ServerMessage
 import Storage
 import Ticket
@@ -17,7 +18,7 @@ abstract class AbstractCommand {
     /**
      * Абстрактный метод, реализующий выполнение команд
      */
-    abstract fun execute(collection: HashSet<Ticket>) : ServerMessage
+    abstract fun execute(collection: HashSet<Ticket>, databaseManager: DatabaseManager) : ServerMessage
     abstract fun setTick(t: Ticket)
     abstract fun setArg(a: String)
 }

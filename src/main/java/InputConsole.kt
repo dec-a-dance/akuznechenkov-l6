@@ -17,10 +17,11 @@ import java.time.LocalDateTime
  */
 class InputConsole {
     val ADDR = "161.35.104.236"
-    val PORT = 4334
-    var consoleWorks: Boolean = true
+    val PORT = 3333
     val serializator = Serializator()
-
+    var USER = ""
+    var logined: Boolean = false
+    var PASSWORD = ""
     val e = InputException("Введенная вами строка не является командой, введите help чтобы получить список всех команд")
     var line: String? = null
     val manager = CommandManager()
@@ -35,13 +36,47 @@ class InputConsole {
         channel.connect(adress)
         channel.configureBlocking(false)
         println("Подключены к $ADDR по порту $PORT")
+        var command: String
+        while (!logined){
+        while(true) {
+            println("Вы хотите войти или зарегистрироваться? Введите register для регистрации, login для входа.")
+            command = readLine() ?: ""
+            if ((command == "register") or (command == "login")) {
+                break
+            }
+        }
+        println("Введите логин:")
+        var login = readLine() ?: ""
+        println("Введите пароль:")
+        var password = readLine() ?: ""
+        var request = LoginRequest(command, login, password, false)
+        var reqBuffer = ByteBuffer.wrap(serializator.serialize(request))
+        channel.send(reqBuffer, adress)
+            var getAnswer = false
+            while (!getAnswer) {
+                reqBuffer.clear()
+                channel.receive(reqBuffer)
+                reqBuffer.flip()
+                var answer = serializator.deserialize(reqBuffer.array())
+                if (answer is LoginAnswer) {
+                    if (answer.logined) {
+                        println("Вход выполнен")
+                        USER = login
+                        PASSWORD = password
+                        logined = true
+                    } else {
+                        println("Ошибка входа")
+                    }
+                    getAnswer = true
+                }
+            }
+        }
         while (true) {
             var tick: Ticket
             var inputBuffer = ByteBuffer.allocate(10000)
             val mapper = ObjectMapper()
             var noCommand = true
             var noAnswer = true
-
                     try {
                        channel.register(selector, SelectionKey.OP_WRITE)
                         while (selector.select() > 0) {
@@ -80,6 +115,8 @@ class InputConsole {
                                                 tick = readTicket()
                                                 dataStor.tick = tick
                                             }
+                                            dataStor.login = USER
+                                            dataStor.password = PASSWORD
                                             var buffer = ByteBuffer.wrap(serializator.serialize(dataStor))
                                             channel.send(buffer, adress)
                                         }else {
@@ -95,10 +132,11 @@ class InputConsole {
                                         }
                                         if (arr[0] == "exit") {
                                             System.exit(0)
-                                        }}
+                                        }
                                     }
                                 }
                             }
+                        }
                     } catch(e: PortUnreachableException) {
                         System.out.println("Проблемы с портом")
                 }

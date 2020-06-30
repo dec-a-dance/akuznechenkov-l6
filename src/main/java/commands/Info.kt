@@ -1,8 +1,12 @@
 package commands
 
+import DatabaseManager
 import ServerMessage
 import Storage
 import Ticket
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.SQLException
 
 /**
  * Класс, реализующий команду info, выводящая информацию о коллекции, с которой работает юзер.
@@ -15,9 +19,9 @@ class Info(): AbstractCommand() {
     /**
      * Метод, отвечающий за выполнение команды
      */
-    override fun execute(collection: HashSet<Ticket>): ServerMessage {
-        return ServerMessage("В коллекции сейчас ${collection.size} элементов \n" +
-                "Тип коллекции ${collection::class.toString()}")
+    override fun execute(collection: HashSet<Ticket>, databaseManager: DatabaseManager): ServerMessage {
+        return ServerMessage("Сейчас вам доступно ${collection.size} элементов " +
+                "Вы используете базу данных под логином ${databaseManager.USER}\n")
     }
     override fun setTick(t: Ticket){
 

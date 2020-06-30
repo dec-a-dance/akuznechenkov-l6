@@ -1,10 +1,13 @@
 package commands
 
+import DatabaseManager
 import InputException
 import ServerMessage
 import Storage
 import Ticket
 import java.lang.NumberFormatException
+import java.sql.Connection
+import java.sql.DriverManager
 import java.util.logging.Logger
 
 /**
@@ -20,19 +23,25 @@ class RemoveById() : AbstractCommand() {
     /**
      * Метод, отвечающий за выполнение команды
      */
-    override fun execute(collection: HashSet<Ticket>): ServerMessage{
+    override fun execute(collection: HashSet<Ticket>, databaseManager: DatabaseManager): ServerMessage{
         var msg = ""
-        var wasFound = false
         try {
-            var searchId: Long = arg.toLong()
-            if(collection.removeIf{it.id == searchId}) {
-                msg = "Элемент был успешно удален"
-                logger.info("Элемент с id = $searchId удален из коллекции")
+                val connection: Connection = DriverManager.getConnection(
+                    "jdbc:postgresql://lab-prog-database-do-user-7323038-0.a.db.ondigitalocean.com:25060/Lab7?sslmode=require",
+                    "doadmin",
+                    "qn2ja517e2cyc53y"
+                )
+                val stm = connection.createStatement()
+                val sql = "DELETE from tickets where (ticket_id=${arg.toLong()}) and (creator = '${databaseManager.USER}');"
+                stm.executeUpdate(sql)
+                stm.close()
+                connection.close()
+            var before = collection.size
+            databaseManager.updateCollection(collection)
+            if (collection.size!=before) {
+                msg = "Элемент с id = $arg был удален из базы данных"
             }
-            else{
-                msg = "Элемент с таким id не был найден"
-                logger.info("Элемент с id = $searchId не найден в коллекции")
-            }
+             else{   msg = "Элемент с id = $arg не был найден или не принадлежит вам" }
 
         }
         catch(e: NumberFormatException){
